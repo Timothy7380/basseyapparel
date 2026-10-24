@@ -309,6 +309,27 @@ footer{padding-block:64px 40px}
 .done .wm{height:80px;width:auto}
 .done h3{font-size:34px;margin:6px 0 0;font-weight:600;letter-spacing:-.03em}
 .done p{color:var(--muted);max-width:44ch;margin:0}
+.od{padding:40px 28px 32px;gap:14px}
+.ok-ic{width:58px;height:58px;border-radius:50%;border:2px solid var(--ok);color:var(--ok);display:grid;place-items:center}
+.od-box{width:100%;max-width:460px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:14px 16px}
+.od-row{display:flex;justify-content:space-between;gap:14px;font-size:14px;padding:4px 0}
+.od-row span:first-child{color:var(--muted)}
+.od-row.tot{border-top:1px solid var(--line);margin-top:6px;padding-top:10px;font-weight:600}
+.od-row.tot span:first-child{color:var(--fg)}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+.pill.wait{background:color-mix(in srgb,var(--tag) 16%,transparent);color:var(--tag)}
+.od-box h4{margin:0 0 8px;font-size:15px;font-weight:600}
+.od-steps{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.od-steps li{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start}
+.od-steps .n{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-size:13px;font-weight:600}
+.od-steps .t{display:block;font-size:14px;font-weight:600}
+.od-steps small b{color:var(--fg);font-weight:600}
+.od h3{font-size:clamp(26px,6.5vw,34px)}
+.od-steps small{color:var(--muted);font-size:13px;line-height:1.45}
+.bank{display:grid;gap:2px;font-size:14px}
+.bank .acct{font-size:22px;font-weight:600;letter-spacing:.02em}
+.btn.wa{background:#1F7A4D;color:#fff;border-color:#1F7A4D;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+.od-acts{display:flex;flex-direction:column;gap:10px;width:100%;max-width:460px}
 @media(max-width:760px){.co{grid-template-columns:1fr}.co-side{order:-1;padding:20px}.co-main{padding:20px}.form{grid-template-columns:1fr}}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);transform:translate(-50%,30px);background:var(--ink);color:var(--on-ink);padding:12px 20px;border-radius:999px;font-size:13.5px;z-index:120;opacity:0;transition:.35s;pointer-events:none;max-width:calc(100% - 32px)}
 .toast.on{opacity:1;transform:translate(-50%,0)}
@@ -466,7 +487,7 @@ footer{padding-block:64px 40px}
     </div>
     <div><h5>Shop</h5><ul><li><a href="#shop" data-cat="Agbada">Agbada</a></li><li><a href="#shop" data-cat="Kaftan">Kaftan</a></li><li><a href="#shop" data-cat="Senator">Senator</a></li><li><a href="#shop" data-cat="Caps">Caps</a></li></ul></div>
     <div><h5>Help</h5><ul><li>Delivery in 2–5 working days</li><li>Exchanges within 7 days</li><li>Size guide</li><li>Bespoke orders</li></ul></div>
-    <div><h5>Follow</h5><ul><li><a href="https://www.tiktok.com/@basseyapparelltd" target="_blank" rel="noopener">TikTok · @basseyapparelltd</a></li><li>Instagram</li><li>WhatsApp</li></ul></div>
+    <div><h5>Follow</h5><ul><li><a href="https://www.tiktok.com/@basseyapparelltd" target="_blank" rel="noopener">TikTok · @basseyapparelltd</a></li><li>Instagram</li><li><a id="waFoot" href="#" target="_blank" rel="noopener">WhatsApp</a></li></ul></div>
   </div>
   <div class="legal"><span>© 2026 Bassey Apparel Ltd. All rights reserved.</span><span>Prices in Naira (₦), VAT included.</span></div>
 </footer>
@@ -657,8 +678,8 @@ $('#bagBtn').onclick=()=>{renderBag();openLayer($('#drawer'))};
 let co={step:0,info:{name:'',phone:'',email:'',address:'',city:'',state:'Lagos'},ship:'lagos',pay:'paystack'};
 function shipOpts(){
   const free=subtotal()>=FREE_OVER, inLagos=co.info.state==='Lagos';
-  return [inLagos?{id:'lagos',t:'Lagos delivery',d:'1–2 working days',amt:free?0:5000}:{id:'states',t:`Delivery to ${co.info.state}`,d:'3–5 working days by courier',amt:free?0:9500},
-   {id:'pickup',t:'Pick up from the showroom',d:'Ready in 24 hours · Lagos',amt:0}];
+  return [inLagos?{id:'lagos',t:'Dispatch rider delivery',d:'Lagos · 1–2 working days',amt:free?0:5000}:{id:'states',t:`Delivery to ${co.info.state}`,d:'3–5 working days by courier',amt:free?0:9500},
+   {id:'pickup',t:'Pick up from our location',d:'Ready in 24 hours · Lagos showroom',amt:0}];
 }
 const shipAmt=()=>(shipOpts().find(o=>o.id===co.ship)||shipOpts()[0]).amt;
 function fixShip(){if(!shipOpts().some(o=>o.id===co.ship))co.ship=shipOpts()[0].id}
@@ -681,8 +702,9 @@ function renderCO(){
   if(co.step===2){const pod=co.info.state==='Lagos'&&co.ship!=='pickup';if(co.pay==='pod'&&!pod)co.pay='paystack';
     main=`<div class="radios">
      <label class="radio"><input type="radio" name="pay" value="paystack"${co.pay==='paystack'?' checked':''}><span><b>Pay now with Paystack</b><small>Card, bank transfer, USSD or bank app</small></span></label>
+     <label class="radio"><input type="radio" name="pay" value="transfer"${co.pay==='transfer'?' checked':''}><span><b>Bank transfer</b><small>Transfer to our account, then send your receipt on WhatsApp. We confirm your order once we've verified it.</small></span></label>
      ${pod?`<label class="radio"><input type="radio" name="pay" value="pod"${co.pay==='pod'?' checked':''}><span><b>Pay on delivery</b><small>Lagos only · transfer or POS at your door</small></span></label>`:''}
-    </div>${LIVE_PAY?'<p class="note" style="margin-top:12px">Payments are processed securely by Paystack. Bassey never sees your card details.</p>':'<div class="demo"><b>Preview mode.</b> No money is taken until a Paystack key is added in config.js.</div>'}`;}
+    </div>${co.pay==='transfer'?`<div class="od-box" style="margin-top:14px;max-width:none">${bankHTML()}</div>`:co.pay==='paystack'?(LIVE_PAY?'<p class="note" style="margin-top:12px">Payments are processed securely by Paystack. Bassey never sees your card details.</p>':'<div class="demo"><b>Preview mode.</b> No money is taken until a Paystack key is added in config.js.</div>'):''}`;}
   if(co.step===0&&!user)main=`<p class="note" style="margin:-8px 0 14px"><button class="linkbtn" id="coSignIn">Sign in</button> for faster checkout and to track your orders.</p>`+main;
   const total=subtotal()+(co.step>0?shipAmt():0);
   $('#cSheet').innerHTML=`<div class="co"><div class="co-main">
@@ -719,22 +741,45 @@ async function placeOrder(total){
       {display_name:'Delivery',variable_name:'delivery',value:co.ship}]}})}
     catch(e){btn.disabled=false;btn.textContent=`Pay ${naira(total)}`;toast(e.message==='cancelled'?'Payment cancelled. Your bag is saved.':e.verify||'Payment could not start. Please try again.');return}
   }else await new Promise(r=>setTimeout(r,700));
-  addRecord('orders',{ref:paid?.reference||ref,date:new Date().toISOString(),total,items,status:co.pay==='paystack'?'Paid':'Pay on delivery'});
-  const how=co.pay==='paystack'?(LIVE_PAY?'Payment received.':'Payment simulated (preview mode).'):'Pay when your order arrives.';
-  $('#cSheet').innerHTML=`<div class="done">${WM}
-   <span class="tagtxt">Order ${esc(paid?.reference||ref)}</span><h3>Thank you, ${esc(co.info.name.split(' ')[0])}.</h3>
-   <p>${how} We'll text ${esc(co.info.phone)} when it ships${bag.some(l=>l.bespoke)?', and call within a day to confirm your bespoke measurements':''}.</p>
-   <p><b>Total ${naira(total)}</b></p>
-   ${LIVE_PAY?'':'<p class="note">Preview mode: no money was taken.</p>'}
-   <button class="btn" style="width:auto;padding-inline:28px" data-close>Continue shopping</button></div>`;
+  const oref=paid?.reference||ref, first=esc(co.info.name.split(' ')[0]), pickup=co.ship==='pickup', ship=shipAmt();
+  const status=co.pay==='paystack'?'Paid':co.pay==='transfer'?'Awaiting payment verification':'Pay on delivery';
+  addRecord('orders',{ref:oref,date:new Date().toISOString(),total,items,status});
+  const lines=bag.map(l=>`<div class="od-row"><span>${esc(byId(l.id).name)} · ${esc(l.size)} × ${l.qty}</span><span>${naira(linePrice(l))}</span></div>`).join('');
+  const waText=`Hello Bassey Stitches, I've placed order ${oref} (${naira(total)}).\nItems: ${items}\nName: ${co.info.name}\nPhone: ${co.info.phone}\n${pickup?'I will pick up.':'Deliver to: '+co.info.address+', '+co.info.city+', '+co.info.state}`+(co.pay==='transfer'?'\nMy payment receipt is attached.':'');
+  const wa=waLink(waText);
+  const getIt=pickup?['Pick up your order','Collect it from our Lagos showroom. We\'ll message you when it\'s ready.']:['Delivery by dispatch rider',`We'll send it to ${esc(co.info.address)}, ${esc(co.info.city)} and text ${esc(co.info.phone)} when it's on the way.`];
+  const steps=co.pay==='transfer'?[
+     ['Send your payment receipt',`Transfer <b>${naira(total)}</b> to the account above, then send the receipt to our WhatsApp with your order number.`],
+     ['Await order confirmation','We verify your payment and confirm your order on WhatsApp. Until then it shows as awaiting payment verification.'],getIt]
+   :co.pay==='paystack'?[
+     ['Payment confirmed',LIVE_PAY?'Paystack has confirmed your payment. A receipt is on its way to your email.':'Preview mode: no money was taken.'],
+     ['We prepare your order',bag.some(l=>l.bespoke)?'We\'ll call within a day to confirm your bespoke measurements.':'Your pieces are checked, pressed and packed.'],getIt]
+   :[['We confirm your order','We\'ll call or WhatsApp you to confirm the items and delivery time.'],
+     ['Pay at your door',`Pay <b>${naira(total)}</b> to the rider by transfer or POS.`],getIt];
+  $('#cSheet').innerHTML=`<div class="done od">
+   <div class="ok-ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+   <span class="tagtxt">Order ${esc(oref)}</span><h3>Order placed successfully!</h3>
+   <p>Thank you for shopping with Bassey Stitches, ${first}.</p>
+   <div class="od-box">${lines}<div class="od-row"><span>${pickup?'Pickup':'Delivery'}</span><span>${ship?naira(ship):'Free'}</span></div>
+    <div class="od-row tot"><span>Total ${co.pay==='paystack'?'paid':'to pay'}</span><span>${naira(total)}</span></div>
+    <div class="od-row"><span>Status</span><span class="pill${co.pay==='paystack'?'':' wait'}">${status}</span></div></div>
+   ${co.pay==='transfer'?`<div class="od-box">${bankHTML()}</div>`:''}
+   <div class="od-box"><h4>What happens next?</h4><ol class="od-steps">${steps.map((s,i)=>`<li><span class="n">${i+1}</span><span><b class="t">${s[0]}</b><small>${s[1]}</small></span></li>`).join('')}</ol></div>
+   <div class="od-acts">${co.pay!=='paystack'?`<a class="btn wa" href="${wa}" target="_blank" rel="noopener">${WA_IC}${co.pay==='transfer'?'Send receipt on WhatsApp':'Confirm on WhatsApp'}</a>`:''}
+   <button class="btn${co.pay!=='paystack'?' ghost':''}" data-close>Continue shopping</button></div></div>`;
+  $('#cSheet').scrollTop=0;
   bag=[];save('bs-bag',bag);updateCounts();
 }
+const WA_IC='<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 2s.8 2.3.9 2.5c.1.2 1.6 2.5 4 3.5 1.5.6 2 .7 2.8.6.4-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z"/></svg>';
+function waLink(text){const n=String(CFG.whatsapp||'').replace(/\D/g,'').replace(/^0/,'234');return `https://wa.me/${n}?text=${encodeURIComponent(text)}`}
+function bankHTML(){const b=CFG.bank||{};return b.accountNumber?`<div class="bank"><span class="note">Pay by bank transfer to</span><span class="acct">${esc(b.accountNumber)}</span><b>${esc(b.accountName||'')}</b><span>${esc(b.bankName||'')}</span></div>`:'<div class="bank"><b>Bank transfer</b><span class="note">We\'ll send our account details to you on WhatsApp right after you place the order.</span></div>'}
 
 /* ---------- config, payments, accounts, bookings ---------- */
 const CFG=window.BASSEY_CONFIG||{};
 const LIVE_PAY=/^pk_(test|live)_/.test(CFG.paystackPublicKey||'');
 const LIVE_AUTH=!!(CFG.firebase&&CFG.firebase.apiKey);
 const DEPOSIT=CFG.bookingDeposit||10000;
+document.getElementById('waFoot')&&(document.getElementById('waFoot').href=waLink('Hello Bassey Stitches, '));
 function loadScript(src){return new Promise((res,rej)=>{const t=document.createElement('script');t.src=src;t.onload=res;t.onerror=()=>rej(new Error('load'));document.head.appendChild(t)})}
 async function pay({email,name,phone,amount,ref,metadata}){
   if(!LIVE_PAY)return new Promise(r=>setTimeout(()=>r({reference:ref,demo:true}),900));
