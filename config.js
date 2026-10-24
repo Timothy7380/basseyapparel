@@ -1,5 +1,5 @@
 window.BASSEY_CONFIG = {
-  paystackPublicKey: "",   // pk_test_... from Paystack → Settings → API Keys & Webhooks
+  paystackPublicKey: "pk_test_d394571743d63e0c35208183869a9d9c018ea691",   // pk_test_... from Paystack → Settings → API Keys & Webhooks
   bookingDeposit: 10000,
   firebase: {
     apiKey: "AIzaSyAuOSBmT9a4E3p7m7_3W7XYmcoM6pT73K8",
