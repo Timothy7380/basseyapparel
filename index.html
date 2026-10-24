@@ -717,7 +717,7 @@ async function placeOrder(total){
       {display_name:'Order',variable_name:'order',value:items},{display_name:'Phone',variable_name:'phone',value:co.info.phone},
       {display_name:'Deliver to',variable_name:'address',value:`${co.info.address}, ${co.info.city}, ${co.info.state}`},
       {display_name:'Delivery',variable_name:'delivery',value:co.ship}]}})}
-    catch(e){btn.disabled=false;btn.textContent=`Pay ${naira(total)}`;toast(e.message==='cancelled'?'Payment cancelled. Your bag is saved.':'Payment could not start. Please try again.');return}
+    catch(e){btn.disabled=false;btn.textContent=`Pay ${naira(total)}`;toast(e.message==='cancelled'?'Payment cancelled. Your bag is saved.':e.verify||'Payment could not start. Please try again.');return}
   }else await new Promise(r=>setTimeout(r,700));
   addRecord('orders',{ref:paid?.reference||ref,date:new Date().toISOString(),total,items,status:co.pay==='paystack'?'Paid':'Pay on delivery'});
   const how=co.pay==='paystack'?(LIVE_PAY?'Payment received.':'Payment simulated (preview mode).'):'Pay when your order arrives.';
@@ -741,7 +741,13 @@ async function pay({email,name,phone,amount,ref,metadata}){
   if(!window.PaystackPop)await loadScript('https://cdn.jsdelivr.net/npm/@paystack/inline-js@2.24.0/dist/inline.js');
   const [firstName,...rest]=(name||'').split(' ');
   return new Promise((res,rej)=>{new PaystackPop().newTransaction({key:CFG.paystackPublicKey,email,amount:Math.round(amount*100),currency:'NGN',reference:ref,firstName,lastName:rest.join(' '),phone,metadata,
-    onSuccess:t=>res(t),onCancel:()=>rej(new Error('cancelled')),onError:e=>rej(e)})});
+    onSuccess:t=>verifyPay(t.reference||ref,Math.round(amount*100)).then(()=>res(t),rej),onCancel:()=>rej(new Error('cancelled')),onError:e=>rej(e)})});
+}
+async function verifyPay(reference,kobo){
+  if(!CFG.verifyUrl)return;
+  const fail=()=>{const e=new Error('unverified');e.verify=`We couldn't confirm this payment yet. If you were charged, contact us with reference ${reference}.`;return e};
+  let j;try{const r=await fetch(CFG.verifyUrl.replace(/\/$/,'')+'/verify?reference='+encodeURIComponent(reference));j=await r.json()}catch(e){throw fail()}
+  if(!(j&&j.ok&&j.amount===kobo&&j.currency==='NGN'))throw fail();
 }
 let user=null,fbAuth=null,afterAuth=null;
 const recKey=k=>`bs-${k}-${user?user.uid:'guest'}`;
@@ -869,7 +875,7 @@ function renderBooking(){
     if(sv.fee){try{paid=await pay({email:bk.email.trim(),name:bk.name.trim(),phone:ph,amount:sv.fee,ref,metadata:{kind:'booking',custom_fields:[
       {display_name:'Booking',variable_name:'service',value:sv.t},{display_name:'Date',variable_name:'date',value:dateLabel},{display_name:'Time',variable_name:'time',value:bk.time},
       {display_name:'Where',variable_name:'location',value:bk.loc},{display_name:'Phone',variable_name:'phone',value:ph},{display_name:'Notes',variable_name:'notes',value:bk.notes||'-'}]}})}
-      catch(e){btn.disabled=false;btn.textContent=`Pay ${naira(sv.fee)} deposit & book`;toast(e.message==='cancelled'?'Payment cancelled. Your booking was not made.':'Payment could not start. Please try again.');return}}
+      catch(e){btn.disabled=false;btn.textContent=`Pay ${naira(sv.fee)} deposit & book`;toast(e.message==='cancelled'?'Payment cancelled. Your booking was not made.':e.verify||'Payment could not start. Please try again.');return}}
     else await new Promise(r=>setTimeout(r,600));
     addRecord('bookings',{ref:paid?.reference||ref,service:sv.t,dateLabel,time:bk.time,location:bk.loc,status:sv.fee?'Deposit paid':'Confirmed'});
     $('#bSheet').innerHTML=`<div class="done">${WM}<span class="tagtxt">Booking ${esc(paid?.reference||ref)}</span><h3>You're booked, ${esc(bk.name.trim().split(' ')[0])}.</h3>
